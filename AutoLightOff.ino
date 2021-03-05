@@ -6,26 +6,30 @@
 #include <TimeLib.h>
 #include <DS1307RTC.h>
 
-LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
-
+LiquidCrystal_I2C lcd(0x27,16,2);
 String st;
 unsigned long timing;
 unsigned long timingTap;
 unsigned long timingSleap;
 bool Sleap = false;
-byte tap = 1;
+byte tap = 10;
 bool tapB = false;
-byte sr1, sr2, sr3, sr4, sr5;
+byte button = 4;       //Кнопка
+byte rele = 8;         //Реле
+byte fRez = 17;        //Фоторезистор
+byte pRez = 20;        //Переменный резистор
 
 void setup()
 {
   Serial.begin(9600);
-  pinMode(4, INPUT);
-  pinMode(A3, INPUT);
-  pinMode(A6, INPUT);
+  pinMode(button, INPUT);
+  pinMode(fRez, INPUT);
+  pinMode(pRez, INPUT);
+  pinMode(rele, OUTPUT);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
-  
+
+//Экран загрузки
   lcd.setCursor(6, 0);  
   lcd.print("Load");
   for (int i = 0; i < 16; i++){
@@ -35,29 +39,35 @@ void setup()
   }
   lcd.clear();
   timingSleap = millis();
+/////////////////
 }
 
 void loop()
 { 
 //  Serial.println(tap);
+//Сброс  перемолненных переменных
   if (millis() - timingTap < 0){
     timingTap = millis();
     timing = millis();
     timingSleap = millis();
   }
-  
+/////////////////
+
+//Переход на начальный экран при бездействии
   if ((millis() - timingSleap > 20000)and(Sleap == false)){
     Sleap = true;
     tap = 10;
     lcd.clear();
   }
-  
+/////////////////
+
+//Нажание на кнопку
   if (millis() - timingTap > 50){
     timingTap = millis();
-    if ((digitalRead(4) == 1)and(tapB == false)){
+    if ((digitalRead(button) == 1)and(tapB == false)){
       tapB = true;
     }else{
-      if ((digitalRead(4) == 0)and(tapB == true)){
+      if ((digitalRead(button) == 0)and(tapB == true)){
         timingSleap = millis();
         Sleap = false;
         if (tap < 3){
@@ -70,34 +80,34 @@ void loop()
       }
     }
   }
-  
+/////////////////
+
+//Смена экранов
   if (millis() - timing > 250){
    timing = millis();
-  
    tmElements_t tm; 
-  
     switch (tap) {
       case 1:
         lcd.setCursor(0, 0);  
         lcd.print("Light sensor:");
         lcd.setCursor(0, 1);  
-        lcd.print(time0(String(analogRead(A3)), 4));
+        lcd.print(time0(String(analogRead(fRez)), 4));
         break;
       case 2:
         lcd.setCursor(0, 0);  
         lcd.print("Cange rezistor:");
         lcd.setCursor(0, 1);  
-        lcd.print(time0(String(analogRead(A6)), 4));
+        lcd.print(time0(String(analogRead(pRez)), 4));
         break;
       case 3:
         if (RTC.read(tm)) {
           st = time0(String(tm.Hour), 2) + "." + time0(String(tm.Minute), 2) + "." + time0(String(tm.Second), 2);
-          lcd.setCursor(0, 0);  
+          lcd.setCursor(0, 0);
           lcd.print("Time:");
           lcd.setCursor(0, 1);  
           lcd.print(st);
         } else {
-          lcd.setCursor(6, 1);  
+          lcd.setCursor(6, 1);
           lcd.print("Eror time");
         }
         break;
@@ -105,7 +115,7 @@ void loop()
         lcd.setCursor(0, 0);  
         lcd.print("Illum.:");
         lcd.setCursor(12, 0);  
-        lcd.print(time0(String(analogRead(A3)), 4));
+        lcd.print(time0(String(analogRead(fRez)), 4));
         lcd.setCursor(0, 1);  
         lcd.print("Min.illum.:");
         lcd.setCursor(12, 1);  
@@ -113,8 +123,10 @@ void loop()
         break;
     }
   }
+/////////////////
 }
 
+//Добавление нулей в начало
 String time0(String te, byte max)
 {
   if (max < 2) return te;
@@ -126,4 +138,4 @@ String time0(String te, byte max)
     }
   }
 }
-
+/////////////////
