@@ -1,10 +1,8 @@
-//DFRobot.com
-//Compatible with the Arduino IDE 1.0
-//Library version:1.1
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include <TimeLib.h>
 #include <DS1307RTC.h>
+#include <avr/eeprom.h>
 
 LiquidCrystal_I2C lcd(0x27,16,2);
 String st;
@@ -12,6 +10,7 @@ unsigned long timing;
 unsigned long timingTap;
 unsigned long timingSleap;
 unsigned long timingRele;
+unsigned long LongPress;
 bool Sleap = false;
 byte tap = 10;
 bool tapB = false;
@@ -25,6 +24,12 @@ bool releB = false;
 byte Light1 = 1024;
 byte Light2 = 1024;
 byte Light3 = 1024;
+byte HourOn;
+byte MinuteOn;
+byte HourNight = 0;
+byte MinuteNight = 0;
+bool Settings = false;
+bool LongPressB = false;
 
 void setup()
 {
@@ -79,17 +84,46 @@ void loop()
 //Нажание на кнопку
   if (millis() - timingTap > 50){
     timingTap = millis();
-    if ((digitalRead(button) == 1)and(tapB == false)){
+    //Долгое нажание на кнопку
+    if ((tapB == true)and(millis() - LongPress > 4000)){
+      if (LongPressB == false){
+        if (Settings == true){
+          Settings = false;
+          LongPressB = true;
+          tap = 10;
+        } else {
+          Settings = true;
+          LongPressB = true;
+          tap = 11;
+        }
+      }
+      if (digitalRead(button) == 0){
+        tapB = false;
+        LongPressB = false;
+      }
+      lcd.clear();
+    }
+    /////////////////
+    if ((digitalRead(button) == 1)and(tapB == false)and(LongPressB == false)){
       tapB = true;
+      LongPress = millis();
     }else{
       if ((digitalRead(button) == 0)and(tapB == true)){
         timingSleap = millis();
         Sleap = false;
         lcd.backlight();
-        if (tap < 7){
-          tap++;
-        }else{
-          tap = 1;
+        if (Settings == false){
+          if (tap < 6){
+            tap++;
+          }else{
+            tap = 1;
+          }
+        } else {
+          if (tap < 15){
+            tap++;
+          } else {
+            tap = 11;
+          }
         }
         tapB = false;
         lcd.clear();
@@ -105,8 +139,8 @@ void loop()
       digitalWrite(rele, HIGH);
       releB = true;
     }
-  
-    if ((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true)){
+
+    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck(HourOn, MinuteOn) == true)){
       digitalWrite(rele, LOW);
       releB = false;
     }
@@ -149,21 +183,15 @@ void loop()
         lcd.setCursor(0, 0);  
         lcd.print("TimeNight:");
         lcd.setCursor(0, 1);  
-        lcd.print(st);
+        lcd.print(time0(String(HourNight), 2) + time0(String(MinuteNight), 2));
         break;
       case 5:
-        lcd.setCursor(0, 0);  
-        lcd.print("TimeMorning:");
-        lcd.setCursor(0, 1);  
-        lcd.print(st);
-        break;
-      case 6:
         lcd.setCursor(0, 0);  
         lcd.print("Min.Light:");
         lcd.setCursor(0, 1);  
         lcd.print(time0(String(MinLight), 4));
         break;
-      case 7:
+      case 6:
         lcd.setCursor(0, 0);  
         lcd.print("Max.Light:");
         lcd.setCursor(0, 1);  
@@ -178,6 +206,10 @@ void loop()
         lcd.print("Min.illum.:");
         lcd.setCursor(12, 1);  
         lcd.print(time0(String(MinLight), 4));
+        break;
+      case 11:
+        lcd.setCursor(0, 0);  
+        lcd.print("Test");
         break;
     }
   }
@@ -194,6 +226,20 @@ String time0(String te, byte max)
     }else{
       return (te);
     }
+  }
+}
+/////////////////
+
+//Сравнение времени
+bool TimeCheck(byte h, byte m){
+  tmElements_t tm;
+  String s1, s2;
+  s1 = String(tm.Hour)+String(tm.Minute);
+  s2 = String(h)+String(m);
+  if (s1.toInt() >= s2.toInt()){
+    return (true);
+  } else {
+    return (false);
   }
 }
 /////////////////
