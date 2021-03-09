@@ -11,13 +11,12 @@ unsigned long timingTap;
 unsigned long timingSleap;
 unsigned long timingRele;
 unsigned long LongPress;
-bool Sleap = false;
+bool Sleap = true;
 byte tap = 10;
 bool tapB = false;
 byte button = 4;       //Кнопка
 byte rele = 8;         //Реле
 byte fRez = 17;        //Фоторезистор
-byte pRez = 20;        //Переменный резистор
 byte MinLight = 100;
 byte MaxLight = 200;
 bool releB = false;
@@ -36,7 +35,6 @@ void setup()
   Serial.begin(9600);
   pinMode(button, INPUT);
   pinMode(fRez, INPUT);
-  pinMode(pRez, INPUT);
   pinMode(rele, OUTPUT);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
@@ -67,16 +65,16 @@ void loop()
 /////////////////
 
 //Переход на начальный экран при бездействии
+/*
   if ((millis() - timingSleap > 20000)and(Sleap == false)){
     Sleap = true;
     tap = 10;
     lcd.clear();
-  }
+  }*/
 /////////////////
 
 //Отключение подсветки
-  if ((millis() - timingSleap > 60000)and(Sleap == true)){
-    Sleap = true;
+  if ((millis() - timingSleap > 30000)and(Sleap == true)){
     lcd.noBacklight();
   }
 /////////////////
@@ -84,17 +82,20 @@ void loop()
 //Нажание на кнопку
   if (millis() - timingTap > 50){
     timingTap = millis();
+    if (Sleap == false)timingSleap = millis(); //Сон
     //Долгое нажание на кнопку
-    if ((tapB == true)and(millis() - LongPress > 4000)){
+    if ((tapB == true)and(millis() - LongPress > 3000)){
       if (LongPressB == false){
         if (Settings == true){
           Settings = false;
           LongPressB = true;
           tap = 10;
+          Sleap = true;
         } else {
           Settings = true;
           LongPressB = true;
-          tap = 11;
+          tap = 1;
+          Sleap = false;
         }
       }
       if (digitalRead(button) == 0){
@@ -107,23 +108,14 @@ void loop()
     if ((digitalRead(button) == 1)and(tapB == false)and(LongPressB == false)){
       tapB = true;
       LongPress = millis();
+      lcd.backlight();
     }else{
-      if ((digitalRead(button) == 0)and(tapB == true)){
+      if ((digitalRead(button) == 0)and(tapB == true)and(Settings == true)){
         timingSleap = millis();
-        Sleap = false;
-        lcd.backlight();
-        if (Settings == false){
-          if (tap < 6){
-            tap++;
-          }else{
-            tap = 1;
-          }
-        } else {
-          if (tap < 15){
-            tap++;
-          } else {
-            tap = 11;
-          }
+        if (tap < 5){
+          tap++;
+        }else{
+          tap = 1;
         }
         tapB = false;
         lcd.clear();
@@ -162,14 +154,8 @@ void loop()
         lcd.print(time0(String(analogRead(fRez)), 4));
         break;
       case 2:
-        lcd.setCursor(0, 0);  
-        lcd.print("Cange rezistor:");
-        lcd.setCursor(0, 1);  
-        lcd.print(time0(String(analogRead(pRez)), 4));
-        break;
-      case 3:
         if (RTC.read(tm)) {
-          st = time0(String(tm.Hour), 2) + "." + time0(String(tm.Minute), 2) + "." + time0(String(tm.Second), 2);
+          st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
           lcd.setCursor(0, 0);
           lcd.print("Time:");
           lcd.setCursor(0, 1);  
@@ -179,19 +165,19 @@ void loop()
           lcd.print("Eror time");
         }
         break;
-      case 4:
+      case 3:
         lcd.setCursor(0, 0);  
         lcd.print("TimeNight:");
         lcd.setCursor(0, 1);  
-        lcd.print(time0(String(HourNight), 2) + time0(String(MinuteNight), 2));
+        lcd.print(time0(String(HourNight), 2) + ":" + time0(String(MinuteNight), 2));
         break;
-      case 5:
+      case 4:
         lcd.setCursor(0, 0);  
         lcd.print("Min.Light:");
         lcd.setCursor(0, 1);  
         lcd.print(time0(String(MinLight), 4));
         break;
-      case 6:
+      case 5:
         lcd.setCursor(0, 0);  
         lcd.print("Max.Light:");
         lcd.setCursor(0, 1);  
@@ -206,10 +192,6 @@ void loop()
         lcd.print("Min.illum.:");
         lcd.setCursor(12, 1);  
         lcd.print(time0(String(MinLight), 4));
-        break;
-      case 11:
-        lcd.setCursor(0, 0);  
-        lcd.print("Test");
         break;
     }
   }
