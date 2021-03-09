@@ -17,8 +17,8 @@ bool tapB = false;
 byte button = 4;       //Кнопка
 byte rele = 8;         //Реле
 byte fRez = 17;        //Фоторезистор
-byte MinLight = 100;
-byte MaxLight = 200;
+int MinLight = 300;
+int MaxLight = 400;
 bool releB = false;
 byte Light1 = 1024;
 byte Light2 = 1024;
@@ -42,8 +42,8 @@ void setup()
 //Экран загрузки
   lcd.setCursor(6, 0);  
   lcd.print("Load");
-  for (int i = 0; i < 16; i++){
-    delay(250);
+  for (int i = 0; i < 18; i++){
+    delay(150);
     lcd.setCursor(i, 1);  
     lcd.print("#");
   }
