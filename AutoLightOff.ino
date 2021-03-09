@@ -109,6 +109,7 @@ void loop()
       tapB = true;
       LongPress = millis();
       lcd.backlight();
+      timingSleap = millis();
     }else{
       if ((digitalRead(button) == 0)and(tapB == true)and(Settings == true)){
         timingSleap = millis();
@@ -125,7 +126,7 @@ void loop()
 /////////////////
 
 //Переключение реле
-  if (millis() - timingRele > 6000){
+  if (millis() - timingRele > 500){
     timingRele = millis();
     if ((analogRead(fRez) < MinLight)and(Light1 < MinLight)and(Light2 < MinLight)and(Light3 < MinLight)and(releB == false)){
       digitalWrite(rele, HIGH);
