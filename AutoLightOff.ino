@@ -11,29 +11,29 @@ unsigned long timingTap;
 unsigned long timingSleap;
 unsigned long timingRele;
 unsigned long LongPress;
-bool Sleap = true;
-byte tap = 100;
-bool tapB = false;
-byte button = 4;       //Кнопка
-byte rele = 8;         //Реле
-byte fRez = 17;        //Фоторезистор
-int MinLight = 300;
-int MaxLight = 400;
-bool releB = false;
-byte Light1 = 1024;
-byte Light2 = 1024;
-byte Light3 = 1024;
-byte HourOn;
+bool Sleap = true;   //Переменная для понимания когда можно переходить в сон, а когда нельзя
+byte tap = 100;      //Переменная для переключения экранов
+bool tapB = false;   //Положение кнопки (false == кнопка отпущена)
+byte button = 4;     //Кнопка
+byte rele = 8;       //Реле
+byte fRez = 17;      //Фоторезистор
+int MinLight = 300;  //Освешенности ниже которой нужно включить реле
+int MaxLight = 400;  //Освещенность выше которой нужно выключить реле
+bool releB = false;  //Переменная говорящая в каком положении реле
+byte Light1 = 1024;  //Переменная для проверки освещенности №1
+byte Light2 = 1024;  //Переменная для проверки освещенности №2
+byte Light3 = 1024;  //Переменная для проверки освещенности №3
+byte HourOn;          
 byte MinuteOn;
-byte HourNight = 0;
-byte MinuteNight = 0;
+byte HourNight = 0;  //Час выключения света
+byte MinuteNight = 0;//Минута выключения света
 bool Settings = false;
 bool LongPressB = false;
 byte s = 0;            //Для энкодера
 int x = 0;             //Ответ от энкодера
 byte nkoder1 = 5;      //Энкодер пин 1
 byte nkoder2 = 8;      //Энкодер пин 2
-byte blinking = 0;
+byte blinking = 0;     //Счетчик задержки моргания
 
 void setup()
 {
@@ -63,9 +63,8 @@ void loop()
 { 
 //  Serial.println(tap);
 
-  Enkoder();  //Энкодер
-  if (Settings == false){
-    x = 0;
+  if (Settings == true){
+    Enkoder();  //Энкодер
   }
 
 //Сброс  перемолненных переменных
