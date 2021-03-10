@@ -29,6 +29,10 @@ byte HourNight = 0;
 byte MinuteNight = 0;
 bool Settings = false;
 bool LongPressB = false;
+byte s = 0;            //Для энкодера
+int x = 0;             //Ответ от энкодера
+byte nkoder1 = 5;      //Энкодер пин 1
+byte nkoder2 = 8;      //Энкодер пин 2
 
 void setup()
 {
@@ -36,6 +40,8 @@ void setup()
   pinMode(button, INPUT);
   pinMode(fRez, INPUT);
   pinMode(rele, OUTPUT);
+  pinMode(nkoder1, INPUT);
+  pinMode(nkoder2, INPUT);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
 
@@ -55,6 +61,12 @@ void setup()
 void loop()
 { 
 //  Serial.println(tap);
+
+  Enkoder();  //Энкодер
+  if (Settings == false){
+    x = 0;
+  }
+
 //Сброс  перемолненных переменных
   if (millis() - timingTap < 0){
     timingTap = millis();
@@ -223,6 +235,41 @@ bool TimeCheck(byte h, byte m){
     return (true);
   } else {
     return (false);
+  }
+}
+/////////////////
+
+//Энкодер
+void Enkoder(){
+  switch (s) {
+      case 0:
+        if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 0)) s = 1;
+        if ((digitalRead(nkoder1) == 1)and(digitalRead(nkoder2) == 0)) s = 10;
+        break;
+      case 1:
+        if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 0)) {s = 1;}else{
+          if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) s = 2;}
+        break;
+      case 10:
+        if ((digitalRead(nkoder1) == 1)and(digitalRead(nkoder2) == 0)) {s = 10;}else{
+          if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) s = 11;}
+        break;
+      case 2:
+        if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) {s = 2;}else{
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) s = 3;}
+        break;
+      case 11:
+        if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) {s = 11;}else{
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) s = 12;}
+        break;
+      case 3:
+        if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) {s = 3;}else{
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 0)) {s = 0;x = 1;}}
+        break;
+      case 12:
+        if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) {s = 12;}else{
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 0)) {s = 0;x = -1;}}
+        break;
   }
 }
 /////////////////
