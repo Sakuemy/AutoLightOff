@@ -17,22 +17,20 @@ bool tapB = false;   //Положение кнопки (false == кнопка о
 byte button = 4;     //Кнопка
 byte rele = 8;       //Реле
 byte fRez = 17;      //Фоторезистор
-int MinLight = 300;  //Освешенности ниже которой нужно включить реле
-int MaxLight = 400;  //Освещенность выше которой нужно выключить реле
+int MinLight = 500;  //Освешенности ниже которой нужно включить реле
+int MaxLight = 600;  //Освещенность выше которой нужно выключить реле
 bool releB = false;  //Переменная говорящая в каком положении реле
-byte Light1 = 1024;  //Переменная для проверки освещенности №1
-byte Light2 = 1024;  //Переменная для проверки освещенности №2
-byte Light3 = 1024;  //Переменная для проверки освещенности №3
-byte HourOn;          
-byte MinuteOn;
+int Light1 = 1024;  //Переменная для проверки освещенности №1
+int Light2 = 1024;  //Переменная для проверки освещенности №2
+int Light3 = 1024;  //Переменная для проверки освещенности №3
 byte HourNight = 0;  //Час выключения света
 byte MinuteNight = 0;//Минута выключения света
 bool Settings = false;
 bool LongPressB = false;
 byte s = 0;            //Для энкодера
 int x = 0;             //Ответ от энкодера
-byte nkoder1 = 5;      //Энкодер пин 1
-byte nkoder2 = 8;      //Энкодер пин 2
+int nkoder1 = 5;      //Энкодер пин 1
+int nkoder2 = 11;      //Энкодер пин 2
 byte blinking = 0;     //Счетчик задержки моргания
 
 void setup()
@@ -145,10 +143,17 @@ void loop()
       releB = true;
     }
 
-    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck(HourOn, MinuteOn) == true)){
+    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck(HourNight, MinuteNight) == true)){
       digitalWrite(rele, LOW);
       releB = false;
     }
+/*    Serial.println(Light1);
+    Serial.println(Light2);
+    Serial.println(Light3);
+    Serial.println(analogRead(fRez));
+    Serial.println(releB);
+    Serial.println(TimeCheck(HourNight, MinuteNight));
+    Serial.println(" ");*/
     Light3 = Light2;
     Light2 = Light1;
     Light1 = analogRead(fRez);
@@ -291,7 +296,7 @@ bool TimeCheck(byte h, byte m){
   String s1, s2;
   s1 = String(tm.Hour)+String(tm.Minute);
   s2 = String(h)+String(m);
-  if (s1.toInt() >= s2.toInt()){
+  if (s1.toInt() == s2.toInt()){
     return (true);
   } else {
     return (false);
