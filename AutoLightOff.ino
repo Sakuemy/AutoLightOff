@@ -11,27 +11,27 @@ unsigned long timingTap;
 unsigned long timingSleap;
 unsigned long timingRele;
 unsigned long LongPress;
-bool Sleap = true;   //Переменная для понимания когда можно переходить в сон, а когда нельзя
-byte tap = 100;      //Переменная для переключения экранов
+int Sleap = true;   //Переменная для понимания когда можно переходить в сон, а когда нельзя
+int tap = 100;      //Переменная для переключения экранов
 bool tapB = false;   //Положение кнопки (false == кнопка отпущена)
-byte button = 4;     //Кнопка
-byte rele = 8;       //Реле
-byte fRez = 17;      //Фоторезистор
+int button = 4;     //Кнопка
+int rele = 8;       //Реле
+int fRez = 17;      //Фоторезистор
 int MinLight = 300;  //Освешенности ниже которой нужно включить реле
 int MaxLight = 400;  //Освещенность выше которой нужно выключить реле
 bool releB = false;  //Переменная говорящая в каком положении реле
 int Light1 = 1024;  //Переменная для проверки освещенности №1
 int Light2 = 1024;  //Переменная для проверки освещенности №2
 int Light3 = 1024;  //Переменная для проверки освещенности №3
-byte HourNight = 0;  //Час выключения света
-byte MinuteNight = 0;//Минута выключения света
+int HourNight = 0;  //Час выключения света
+int MinuteNight = 0;//Минута выключения света
 bool Settings = false;
 bool LongPressB = false;
-byte s = 0;            //Для энкодера
+int s = 0;            //Для энкодера
 int x = 0;             //Ответ от энкодера
 int nkoder1 = 5;      //Энкодер пин 1
 int nkoder2 = 11;      //Энкодер пин 2
-byte blinking = 0;     //Счетчик задержки моргания
+int blinking = 0;     //Счетчик задержки моргания
 
 void setup()
 {
@@ -64,11 +64,6 @@ void loop()
   if (Settings == true){
     Enkoder();  //Энкодер
   }
-  
-  if (x != 0){
-    Serial.println(x);
-    x = 0;
-  }
 
 //Сброс  перемолненных переменных
   if (millis() - timingTap < 0){
@@ -83,7 +78,7 @@ void loop()
 /*
   if ((millis() - timingSleap > 20000)and(Sleap == false)){
     Sleap = true;
-    tap = 10;
+    tap = 100;
     lcd.clear();
   }*/
 /////////////////
@@ -147,18 +142,10 @@ void loop()
       digitalWrite(rele, HIGH);
       releB = true;
     }
-
     if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck(HourNight, MinuteNight) == true)){
       digitalWrite(rele, LOW);
       releB = false;
     }
-/*    Serial.println(Light1);
-    Serial.println(Light2);
-    Serial.println(Light3);
-    Serial.println(analogRead(fRez));
-    Serial.println(releB);
-    Serial.println(TimeCheck(HourNight, MinuteNight));
-    Serial.println(" ");*/
     Light3 = Light2;
     Light2 = Light1;
     Light1 = analogRead(fRez);
@@ -179,6 +166,13 @@ void loop()
     switch (tap) {
       case 1:
         if (RTC.read(tm)) {
+          if (x != 0){
+            if ((tm.Hour == 23)and(x > 0)) {tm.Hour = 0; x = 0;}
+            if ((tm.Hour == 0)and(x < 0)) {tm.Hour = 23; x = 0;}
+            tm.Hour = tm.Hour + x;
+            RTC.write(tm);
+            x = 0;
+          }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
           }else{
@@ -189,12 +183,21 @@ void loop()
           lcd.setCursor(0, 1);  
           lcd.print(st);
         } else {
-          lcd.setCursor(0, 1);
-          lcd.print("Eror time");
+          tm.Hour = 0;
+          tm.Minute = 0;
+          tm.Second = 0;
+          RTC.write(tm);
         }
         break;
       case 2:
         if (RTC.read(tm)) {
+          if (x != 0){
+            if ((tm.Minute == 59)and(x > 0)) {tm.Minute = 0; x = 0;}
+            if ((tm.Minute == 0)and(x < 0)) {tm.Minute = 59; x = 0;}
+            tm.Minute = tm.Minute + x;
+            RTC.write(tm);
+            x = 0;
+          }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
           }else{
@@ -205,12 +208,21 @@ void loop()
           lcd.setCursor(0, 1);  
           lcd.print(st);
         } else {
-          lcd.setCursor(0, 1);
-          lcd.print("Eror time");
+          tm.Hour = 0;
+          tm.Minute = 0;
+          tm.Second = 0;
+          RTC.write(tm);
         }
         break;
       case 3:
         if (RTC.read(tm)) {
+          if (x != 0){
+            if ((tm.Second == 59)and(x > 0)) {tm.Second = 0; x = 0;}
+            if ((tm.Second == 0)and(x < 0)) {tm.Second = 59; x = 0;}
+            tm.Second = tm.Second + x;
+            RTC.write(tm);
+            x = 0;
+          }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
           }else{
@@ -221,14 +233,22 @@ void loop()
           lcd.setCursor(0, 1);  
           lcd.print(st);
         } else {
-          lcd.setCursor(0, 1);
-          lcd.print("Eror time");
+          tm.Hour = 0;
+          tm.Minute = 0;
+          tm.Second = 0;
+          RTC.write(tm);
         }
         break;
       case 4:
         lcd.setCursor(0, 0);  
         lcd.print("TimeNight:");
         lcd.setCursor(0, 1);
+        if (x != 0){
+          HourNight = HourNight + x;
+          if (HourNight > 23) HourNight = 0;
+          if (HourNight < 0) HourNight = 23;
+          x = 0;
+        }
         if (blinking <= 2){
           lcd.print(time0(String(HourNight), 2) + ":" + time0(String(MinuteNight), 2));
         }else{
@@ -239,6 +259,12 @@ void loop()
         lcd.setCursor(0, 0);  
         lcd.print("TimeNight:");
         lcd.setCursor(0, 1);
+        if (x != 0){
+          MinuteNight = MinuteNight + x;
+          if (MinuteNight > 59) MinuteNight = 0;
+          if (MinuteNight < 0) MinuteNight = 59;
+          x = 0;
+        }
         if (blinking <= 2){
           lcd.print(time0(String(HourNight), 2) + ":" + time0(String(MinuteNight), 2));
         }else{
@@ -249,6 +275,12 @@ void loop()
         lcd.setCursor(0, 0);  
         lcd.print("Min.Light:");
         lcd.setCursor(0, 1);
+        if (x != 0){
+          MinLight = MinLight + (x * 5);
+          if (MinLight > 1024) MinLight = 1024;
+          if (MinLight < 0) MinLight = 0;
+          x = 0;
+        }
         if (blinking <= 2){
           lcd.print(time0(String(MinLight), 4));
         }else{
@@ -259,6 +291,12 @@ void loop()
         lcd.setCursor(0, 0);  
         lcd.print("Max.Light:");
         lcd.setCursor(0, 1);  
+        if (x != 0){
+          MaxLight = MaxLight + (x * 5);
+          if (MaxLight > 1024) MaxLight = 1024;
+          if (MaxLight < 0) MaxLight = 0;
+          x = 0;
+        }
         if (blinking <= 2){
           lcd.print(time0(String(MaxLight), 4));
         }else{
