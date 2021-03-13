@@ -17,8 +17,8 @@ bool tapB = false;   //Положение кнопки (false == кнопка о
 byte button = 4;     //Кнопка
 byte rele = 8;       //Реле
 byte fRez = 17;      //Фоторезистор
-int MinLight = 500;  //Освешенности ниже которой нужно включить реле
-int MaxLight = 600;  //Освещенность выше которой нужно выключить реле
+int MinLight = 300;  //Освешенности ниже которой нужно включить реле
+int MaxLight = 400;  //Освещенность выше которой нужно выключить реле
 bool releB = false;  //Переменная говорящая в каком положении реле
 int Light1 = 1024;  //Переменная для проверки освещенности №1
 int Light2 = 1024;  //Переменная для проверки освещенности №2
@@ -63,6 +63,11 @@ void loop()
 
   if (Settings == true){
     Enkoder();  //Энкодер
+  }
+  
+  if (x != 0){
+    Serial.println(x);
+    x = 0;
   }
 
 //Сброс  перемолненных переменных
@@ -313,27 +318,27 @@ void Enkoder(){
         break;
       case 1:
         if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 0)) {s = 1;}else{
-          if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) s = 2;}
+          if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) {s = 2;}else{s = 0;}}
         break;
       case 10:
         if ((digitalRead(nkoder1) == 1)and(digitalRead(nkoder2) == 0)) {s = 10;}else{
-          if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) s = 11;}
+          if ((digitalRead(nkoder1) == 1)and(digitalRead(nkoder2) == 1)) {s = 11;}else{s = 0;}}
         break;
       case 2:
         if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) {s = 2;}else{
-          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) s = 3;}
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) {s = 3;}else{s = 0;}}
         break;
       case 11:
-        if ((digitalRead(nkoder2) == 1)and(digitalRead(nkoder1) == 1)) {s = 11;}else{
-          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) s = 12;}
+        if ((digitalRead(nkoder1) == 1)and(digitalRead(nkoder2) == 1)) {s = 11;}else{
+          if ((digitalRead(nkoder1) == 0)and(digitalRead(nkoder2) == 1)) {s = 12;}else{s = 0;}}
         break;
       case 3:
         if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) {s = 3;}else{
-          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 0)) {s = 0;x = 1;}}
+          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 0)) {s = 0;x = 1;}else{s = 0;}}
         break;
       case 12:
-        if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 1)) {s = 12;}else{
-          if ((digitalRead(nkoder2) == 0)and(digitalRead(nkoder1) == 0)) {s = 0;x = -1;}}
+        if ((digitalRead(nkoder1) == 0)and(digitalRead(nkoder2) == 1)) {s = 12;}else{
+          if ((digitalRead(nkoder1) == 0)and(digitalRead(nkoder2) == 0)) {s = 0;x = -1;}else{s = 0;}}
         break;
   }
 }
