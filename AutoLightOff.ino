@@ -93,7 +93,7 @@ void loop()
   if (millis() - timingTap > 50){
     timingTap = millis();
     if (Sleap == false)timingSleap = millis(); //Сон
-    //Долгое нажание на кнопку
+//Долгое нажание на кнопку
     if ((tapB == true)and(millis() - LongPress > 3000)){
       if (LongPressB == false){
         if (Settings == true){
@@ -102,10 +102,12 @@ void loop()
           tap = 100;
           Sleap = true;
         } else {
-          Settings = true;
-          LongPressB = true;
-          tap = 1;
-          Sleap = false;
+          if ((tapB == false)and(millis() - LongPress > 3000)){
+            Settings = true;
+            LongPressB = true;
+            tap = 1;
+            Sleap = false;
+          }
         }
       }
       if (digitalRead(button) == 0){
@@ -114,7 +116,7 @@ void loop()
       }
       lcd.clear();
     }
-    /////////////////
+/////////////////
     if ((digitalRead(button) == 1)and(tapB == false)and(LongPressB == false)){
       tapB = true;
       LongPress = millis();
