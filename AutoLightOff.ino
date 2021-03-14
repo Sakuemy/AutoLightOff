@@ -11,6 +11,7 @@ unsigned long timingTap;
 unsigned long timingSleap;
 unsigned long timingRele;
 unsigned long LongPress;
+unsigned long ChangeSetting;
 int Sleap = true;   //Переменная для понимания когда можно переходить в сон, а когда нельзя
 int tap = 100;      //Переменная для переключения экранов
 bool tapB = false;   //Положение кнопки (false == кнопка отпущена)
@@ -71,6 +72,7 @@ void loop()
     timing = millis();
     timingSleap = millis();
     timingRele = millis();
+    ChangeSetting = millis();
   }
 /////////////////
 
@@ -102,7 +104,7 @@ void loop()
           tap = 100;
           Sleap = true;
         } else {
-          if ((tapB == false)and(millis() - LongPress > 3000)){
+          if ((Settings == false)and(millis() - LongPress > 3000)){
             Settings = true;
             LongPressB = true;
             tap = 1;
@@ -164,7 +166,10 @@ void loop()
        blinking = 0;
      }
    }
-   tmElements_t tm; 
+   tmElements_t tm;
+    if (millis() - ChangeSetting < 1000){
+      blinking = 1;
+    }
     switch (tap) {
       case 1:
         if (RTC.read(tm)) {
@@ -174,6 +179,7 @@ void loop()
             tm.Hour = tm.Hour + x;
             RTC.write(tm);
             x = 0;
+            ChangeSetting = millis();
           }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
@@ -199,6 +205,7 @@ void loop()
             tm.Minute = tm.Minute + x;
             RTC.write(tm);
             x = 0;
+            ChangeSetting = millis();
           }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
@@ -224,6 +231,7 @@ void loop()
             tm.Second = tm.Second + x;
             RTC.write(tm);
             x = 0;
+            ChangeSetting = millis();
           }
           if (blinking <= 2){
             st = time0(String(tm.Hour), 2) + ":" + time0(String(tm.Minute), 2) + ":" + time0(String(tm.Second), 2);
@@ -250,6 +258,7 @@ void loop()
           if (HourNight > 23) HourNight = 0;
           if (HourNight < 0) HourNight = 23;
           x = 0;
+          ChangeSetting = millis();
         }
         if (blinking <= 2){
           lcd.print(time0(String(HourNight), 2) + ":" + time0(String(MinuteNight), 2));
@@ -266,6 +275,7 @@ void loop()
           if (MinuteNight > 59) MinuteNight = 0;
           if (MinuteNight < 0) MinuteNight = 59;
           x = 0;
+          ChangeSetting = millis();
         }
         if (blinking <= 2){
           lcd.print(time0(String(HourNight), 2) + ":" + time0(String(MinuteNight), 2));
@@ -278,10 +288,11 @@ void loop()
         lcd.print("Min.Light:");
         lcd.setCursor(0, 1);
         if (x != 0){
-          MinLight = MinLight + (x * 5);
+          MinLight = MinLight + (x * 10);
           if (MinLight > 1024) MinLight = 1024;
           if (MinLight < 0) MinLight = 0;
           x = 0;
+          ChangeSetting = millis();
         }
         if (blinking <= 2){
           lcd.print(time0(String(MinLight), 4));
@@ -294,10 +305,11 @@ void loop()
         lcd.print("Max.Light:");
         lcd.setCursor(0, 1);  
         if (x != 0){
-          MaxLight = MaxLight + (x * 5);
+          MaxLight = MaxLight + (x * 10);
           if (MaxLight > 1024) MaxLight = 1024;
           if (MaxLight < 0) MaxLight = 0;
           x = 0;
+          ChangeSetting = millis();
         }
         if (blinking <= 2){
           lcd.print(time0(String(MaxLight), 4));
@@ -305,7 +317,6 @@ void loop()
           lcd.print("    ");
         }
         break;
-        
       case 100:
         lcd.setCursor(0, 0);  
         lcd.print("Illum.:");
