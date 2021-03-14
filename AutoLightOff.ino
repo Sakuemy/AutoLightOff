@@ -1,8 +1,9 @@
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 #include <TimeLib.h>
-#include <DS1307RTC.h>
+#include <DS1307RTC.h>          //Библиотека для работы с модулем времени
 #include <avr/eeprom.h>
+#include <EEPROM.h>
 
 LiquidCrystal_I2C lcd(0x27,16,2);
 String st;
@@ -18,16 +19,16 @@ bool tapB = false;   //Положение кнопки (false == кнопка о
 int button = 4;     //Кнопка
 int rele = 8;       //Реле
 int fRez = 17;      //Фоторезистор
-int MinLight = 300;  //Освешенности ниже которой нужно включить реле
-int MaxLight = 400;  //Освещенность выше которой нужно выключить реле
+int MinLight;  //Освешенности ниже которой нужно включить реле
+int MaxLight;  //Освещенность выше которой нужно выключить реле
 bool releB = false;  //Переменная говорящая в каком положении реле
 int Light1 = 1024;  //Переменная для проверки освещенности №1
 int Light2 = 1024;  //Переменная для проверки освещенности №2
 int Light3 = 1024;  //Переменная для проверки освещенности №3
-int HourNight = 0;  //Час выключения света
-int MinuteNight = 0;//Минута выключения света
-int HourMorning = 7;  //Час когда свет может включаться
-int MinuteMorning = 0;//Минута когда свет может включаться
+int HourNight;  //Час выключения света
+int MinuteNight;//Минута выключения света
+int HourMorning;  //Час когда свет может включаться
+int MinuteMorning;//Минута когда свет может включаться
 bool Settings = false;
 bool LongPressB = false;
 int s = 0;            //Для энкодера
@@ -46,6 +47,21 @@ void setup()
   pinMode(nkoder2, INPUT);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();                 //Включение подсветки дисплея
+  
+//Загрузка занных из энергонезависимой памяти
+  MaxLight = EEPROM_int_read(0);
+  if ((MaxLight < 0)or(MaxLight > 1024)) MaxLight = 500;
+  MinLight = EEPROM_int_read(2);
+  if ((MinLight < 0)or(MinLight > 1024)) MinLight = 300;
+  HourNight = EEPROM_int_read(4);
+  if ((HourNight < 0)or(HourNight > 23)) HourNight = 0;
+  MinuteNight = EEPROM_int_read(6);
+  if ((MinuteNight < 0)or(MinuteNight > 59)) MinuteNight = 0;
+  HourMorning = EEPROM_int_read(8);
+  if ((HourMorning < 0)or(HourMorning > 23)) HourMorning = 6;
+  MinuteMorning = EEPROM_int_read(10);
+  if ((MinuteMorning < 0)or(MinuteMorning > 59)) MinuteMorning = 0;
+/////////////////
 
 //Экран загрузки
   lcd.setCursor(6, 0);  
@@ -105,6 +121,12 @@ void loop()
           LongPressB = true;
           tap = 100;
           Sleap = true;
+          EEPROM_int_write(0, MaxLight);
+          EEPROM_int_write(2, MinLight);
+          EEPROM_int_write(4, HourNight);
+          EEPROM_int_write(6, MinuteNight);
+          EEPROM_int_write(8, HourMorning);
+          EEPROM_int_write(10, MinuteMorning);
         } else {
           if ((Settings == false)and(millis() - LongPress > 3000)){
             Settings = true;
@@ -134,6 +156,14 @@ void loop()
         }else{
           tap = 1;
         }
+        if ((tap > 3)and(tap < 100)){
+          EEPROM_int_write(0, MaxLight);
+          EEPROM_int_write(2, MinLight);
+          EEPROM_int_write(4, HourNight);
+          EEPROM_int_write(6, MinuteNight);
+          EEPROM_int_write(8, HourMorning);
+          EEPROM_int_write(10, MinuteMorning);
+        }
         tapB = false;
         lcd.clear();
       }
@@ -142,7 +172,7 @@ void loop()
 /////////////////
 
 //Переключение реле
-  if (millis() - timingRele > 3000){
+  if (millis() - timingRele > 60000){
     timingRele = millis();
     if ((analogRead(fRez) < MinLight)and(Light1 < MinLight)and(Light2 < MinLight)and(Light3 < MinLight)and(releB == false)){
       digitalWrite(rele, HIGH);
@@ -432,6 +462,25 @@ void Enkoder(){
         if ((digitalRead(nkoder1) == 0)and(digitalRead(nkoder2) == 1)) {s = 12;}else{
           if ((digitalRead(nkoder1) == 0)and(digitalRead(nkoder2) == 0)) {s = 0;x = -1;}else{s = 0;}}
         break;
+  }
+}
+/////////////////
+
+//Чтение переменной int из памяти EEPROM
+int EEPROM_int_read(int addr) {
+  byte raw[2];
+  for(byte i = 0; i < 2; i++) raw[i] = EEPROM.read(addr+i);
+  int &num = (int&)raw;
+  return num;
+}
+/////////////////
+
+//Запись переменной int из памяти EEPROM
+void EEPROM_int_write(int addr, int num) {
+  if (EEPROM_int_read(addr)!= num){//если сохраняемое отличается
+    byte raw[2];
+    (int&)raw = num;
+    for(byte i = 0; i < 2; i++) EEPROM.write(addr+i, raw[i]);
   }
 }
 /////////////////
