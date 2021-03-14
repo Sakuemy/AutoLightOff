@@ -14,11 +14,11 @@ unsigned long timingRele;
 unsigned long LongPress;
 unsigned long ChangeSetting;
 int Sleap = true;   //Переменная для понимания когда можно переходить в сон, а когда нельзя
-int tap = 100;      //Переменная для переключения экранов
+byte tap = 100;      //Переменная для переключения экранов
 bool tapB = false;   //Положение кнопки (false == кнопка отпущена)
-int button = 4;     //Кнопка
-int rele = 8;       //Реле
-int fRez = 17;      //Фоторезистор
+byte button = 4;     //Кнопка
+byte rele = 8;       //Реле
+byte fRez = 17;      //Фоторезистор
 int MinLight;  //Освешенности ниже которой нужно включить реле
 int MaxLight;  //Освещенность выше которой нужно выключить реле
 bool releB = false;  //Переменная говорящая в каком положении реле
@@ -31,11 +31,11 @@ int HourMorning;  //Час когда свет может включаться
 int MinuteMorning;//Минута когда свет может включаться
 bool Settings = false;
 bool LongPressB = false;
-int s = 0;            //Для энкодера
+byte s = 0;            //Для энкодера
 int x = 0;            //Ответ от энкодера
-int nkoder1 = 5;      //Энкодер пин 1
-int nkoder2 = 11;     //Энкодер пин 2
-int blinking = 0;     //Счетчик задержки моргания
+byte nkoder1 = 5;      //Энкодер пин 1
+byte nkoder2 = 11;     //Энкодер пин 2
+byte blinking = 0;     //Счетчик задержки моргания
 
 void setup()
 {
@@ -327,9 +327,9 @@ void loop()
           ChangeSetting = millis();
         }
         if (blinking <= 2){
-          lcd.print(time0(String(HourMorning), 2) + ":" + time0(String(MinuteNight), 2));
+          lcd.print(time0(String(HourMorning), 2) + ":" + time0(String(MinuteMorning), 2));
         }else{
-          lcd.print("  :" + time0(String(MinuteNight), 2));
+          lcd.print("  :" + time0(String(MinuteMorning), 2));
         }
         break;
       case 7:
