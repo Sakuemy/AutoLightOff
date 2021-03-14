@@ -26,12 +26,14 @@ int Light2 = 1024;  //Переменная для проверки освеще�
 int Light3 = 1024;  //Переменная для проверки освещенности №3
 int HourNight = 0;  //Час выключения света
 int MinuteNight = 0;//Минута выключения света
+int HourMorning = 7;  //Час когда свет может включаться
+int MinuteMorning = 0;//Минута когда свет может включаться
 bool Settings = false;
 bool LongPressB = false;
 int s = 0;            //Для энкодера
-int x = 0;             //Ответ от энкодера
+int x = 0;            //Ответ от энкодера
 int nkoder1 = 5;      //Энкодер пин 1
-int nkoder2 = 11;      //Энкодер пин 2
+int nkoder2 = 11;     //Энкодер пин 2
 int blinking = 0;     //Счетчик задержки моргания
 
 void setup()
@@ -43,7 +45,7 @@ void setup()
   pinMode(nkoder1, INPUT);
   pinMode(nkoder2, INPUT);
   lcd.init();                      // initialize the lcd 
-  lcd.backlight();
+  lcd.backlight();                 //Включение подсветки дисплея
 
 //Экран загрузки
   lcd.setCursor(6, 0);  
@@ -127,7 +129,7 @@ void loop()
     }else{
       if ((digitalRead(button) == 0)and(tapB == true)and(Settings == true)){
         timingSleap = millis();
-        if (tap < 7){
+        if (tap < 9){
           tap++;
         }else{
           tap = 1;
@@ -146,7 +148,7 @@ void loop()
       digitalWrite(rele, HIGH);
       releB = true;
     }
-    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck(HourNight, MinuteNight) == true)){
+    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck() == true)){
       digitalWrite(rele, LOW);
       releB = false;
     }
@@ -285,6 +287,40 @@ void loop()
         break;
       case 6:
         lcd.setCursor(0, 0);  
+        lcd.print("TimeMorning:");
+        lcd.setCursor(0, 1);
+        if (x != 0){
+          HourMorning = HourMorning + x;
+          if (HourMorning > 23) HourMorning = 0;
+          if (HourMorning < 0) HourMorning = 23;
+          x = 0;
+          ChangeSetting = millis();
+        }
+        if (blinking <= 2){
+          lcd.print(time0(String(HourMorning), 2) + ":" + time0(String(MinuteNight), 2));
+        }else{
+          lcd.print("  :" + time0(String(MinuteNight), 2));
+        }
+        break;
+      case 7:
+        lcd.setCursor(0, 0);  
+        lcd.print("TimeMorning:");
+        lcd.setCursor(0, 1);
+        if (x != 0){
+          MinuteMorning = MinuteMorning + x;
+          if (MinuteMorning > 59) MinuteMorning = 0;
+          if (MinuteMorning < 0) MinuteMorning = 59;
+          x = 0;
+          ChangeSetting = millis();
+        }
+        if (blinking <= 2){
+          lcd.print(time0(String(HourMorning), 2) + ":" + time0(String(MinuteMorning), 2));
+        }else{
+          lcd.print(time0(String(HourMorning), 2) + ":  ");
+        }
+        break;
+      case 8:
+        lcd.setCursor(0, 0);  
         lcd.print("Min.Light:");
         lcd.setCursor(0, 1);
         if (x != 0){
@@ -300,7 +336,7 @@ void loop()
           lcd.print("    ");
         }
         break;
-      case 7:
+      case 9:
         lcd.setCursor(0, 0);  
         lcd.print("Max.Light:");
         lcd.setCursor(0, 1);  
@@ -329,8 +365,8 @@ void loop()
         break;
     }
   }
-/////////////////
 }
+/////////////////
 
 //Добавление нулей в начало
 String time0(String te, byte max)
@@ -346,16 +382,21 @@ String time0(String te, byte max)
 }
 /////////////////
 
-//Сравнение времени
-bool TimeCheck(byte h, byte m){
+//Сравнение времени (true = время входит в диопозон)
+bool TimeCheck(){
   tmElements_t tm;
-  String s1, s2;
-  s1 = String(tm.Hour)+String(tm.Minute);
-  s2 = String(h)+String(m);
-  if (s1.toInt() == s2.toInt()){
+  String Nig, Mor, T;
+  Nig = String(HourNight)+time0(String(MinuteNight), 2);
+  Mor = String(HourMorning)+time0(String(MinuteMorning), 2);
+  T = String(tm.Hour)+time0(String(tm.Minute), 2);
+  if ((Nig < T)and(T < Mor)){
     return (true);
-  } else {
-    return (false);
+  }else{
+    if (((Nig > Mor)and(T > Nig))or((T < Nig)and(T < Mor))){
+      return (true);
+    }else{
+      return (false);
+    }
   }
 }
 /////////////////
