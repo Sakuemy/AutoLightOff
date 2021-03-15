@@ -94,15 +94,6 @@ void loop()
   }
 /////////////////
 
-//Переход на начальный экран при бездействии
-/*
-  if ((millis() - timingSleap > 20000)and(Sleap == false)){
-    Sleap = true;
-    tap = 100;
-    lcd.clear();
-  }*/
-/////////////////
-
 //Отключение подсветки
   if ((millis() - timingSleap > 30000)and(Sleap == true)){
     lcd.noBacklight();
@@ -172,15 +163,17 @@ void loop()
 /////////////////
 
 //Переключение реле
-  if (millis() - timingRele > 60000){
+  if (millis() - timingRele > 3000){
     timingRele = millis();
-    if ((analogRead(fRez) < MinLight)and(Light1 < MinLight)and(Light2 < MinLight)and(Light3 < MinLight)and(releB == false)){
+    Serial.println(TimeCheck());
+    if ((analogRead(fRez) < MinLight)and(Light1 < MinLight)and(Light2 < MinLight)and(Light3 < MinLight)and(releB == false)and(TimeCheck() == false)){
       digitalWrite(rele, HIGH);
       releB = true;
-    }
-    if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck() == true)){
-      digitalWrite(rele, LOW);
-      releB = false;
+    }else{
+      if (((analogRead(fRez) > MaxLight)and(Light1 > MaxLight)and(Light2 > MaxLight)and(Light3 > MaxLight)and(releB == true))or(TimeCheck() == true)){
+        digitalWrite(rele, LOW);
+        releB = false;
+      }
     }
     Light3 = Light2;
     Light2 = Light1;
@@ -414,19 +407,16 @@ String time0(String te, byte max)
 
 //Сравнение времени (true = время входит в диопозон)
 bool TimeCheck(){
-  tmElements_t tm;
-  String Nig, Mor, T;
-  Nig = String(HourNight)+time0(String(MinuteNight), 2);
-  Mor = String(HourMorning)+time0(String(MinuteMorning), 2);
-  T = String(tm.Hour)+time0(String(tm.Minute), 2);
-  if ((Nig < T)and(T < Mor)){
+  tmElements_t tmp;
+  RTC.read(tmp);
+  String Nig, Mor, Ti;
+  Nig = String(HourNight) + time0(String(MinuteNight), 2);
+  Mor = String(HourMorning) + time0(String(MinuteMorning), 2);
+  Ti = time0(String(tmp.Hour), 2) + time0(String(tmp.Minute), 2);
+  if (((Nig.toInt() < Ti.toInt())and(Ti.toInt() < Mor.toInt())) or (((Nig.toInt() > Mor.toInt())and(Ti.toInt() > Nig.toInt()))or((Ti.toInt() < Nig.toInt())and(Ti.toInt() < Mor.toInt())))){
     return (true);
   }else{
-    if (((Nig > Mor)and(T > Nig))or((T < Nig)and(T < Mor))){
-      return (true);
-    }else{
-      return (false);
-    }
+    return (false);
   }
 }
 /////////////////
